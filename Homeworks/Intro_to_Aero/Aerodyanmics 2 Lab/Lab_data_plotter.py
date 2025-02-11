@@ -10,6 +10,8 @@ class pressureAnalysis():
         self.air_density = 1.225   # kg/m^3
         self.velocity_mean = np.mean(pd.to_numeric(self.data.iloc[5:, 47]))
 
+        self.angles_to_measure = [0, 5, 10, 15, 20]
+
         self.x_axis = np.linspace(-6, 20, 14)
         
         self.pressure_data = data.iloc[4:, 12:32].reset_index(drop=True)
@@ -38,11 +40,25 @@ class pressureAnalysis():
         
         self.CL = self.trapezoidal_rule(self.Cp_upper, self.upperDistances, self.Cp_lower, self.lowerDistances)
 
+        self.reynolds_number = 1.225 * self.velocity_mean * self.chord / (1.81e-5*1000)
+
+        print(f"Reynolds number: {self.reynolds_number.round(2)}")
         
 
+        
+
+
+        data_naca0012 = np.loadtxt("naca0012_experiment_re_200000.txt")  
+
+        
+        self.angles_for_actual_experiment = data_naca0012[:, 0] 
+        self.lift_cofficient_for_actual_experiment = data_naca0012[:, 1]
+
+
+
         print(len(self.Cp_upper[0]))
-        plt.plot(self.upperDistances/self.chord, self.Cp_upper[3], label="Upper Surface")
-        plt.plot(self.lowerDistances/self.chord, self.Cp_lower[3], label="Lower Surface")
+        plt.plot(self.upperDistances/self.chord, self.Cp_upper[7], label="Upper Surface")
+        plt.plot(self.lowerDistances/self.chord, self.Cp_lower[7], label="Lower Surface")
         plt.xlabel("Chordwise Position (x/c)")
         plt.ylabel("Coefficient of Pressure")
         plt.title("Coefficient of Pressure vs Chordwise Position")
@@ -90,6 +106,7 @@ class pressureAnalysis():
     
     def plot_CL(self):
         plt.plot(self.x_axis, self.CL, label="CL")
+        plt.plot(self.angles_for_actual_experiment, self.lift_cofficient_for_actual_experiment, label="Actual CL")
         plt.xlabel("Angle of Attack (deg)")
         plt.ylabel("Coefficient of Lift")
         plt.title("Coefficient of Lift vs Angle of Attack")
