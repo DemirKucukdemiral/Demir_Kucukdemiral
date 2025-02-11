@@ -37,7 +37,9 @@ class pressureAnalysis():
         self.Cp_lower = self.coefficientPressure(self.lower_surface_pressures_matrix) *1000
         
         self.CL = self.trapezoidal_rule(self.Cp_upper, self.upperDistances, self.Cp_lower, self.lowerDistances)
+
         
+
         print(len(self.Cp_upper[0]))
         plt.plot(self.upperDistances/self.chord, self.Cp_upper[3], label="Upper Surface")
         plt.plot(self.lowerDistances/self.chord, self.Cp_lower[3], label="Lower Surface")
@@ -80,7 +82,7 @@ class pressureAnalysis():
         
         coeffLiftMatrix = intMatrix_2 - intMatrix_1
 
-        # Apply cosine correction in a vectorized way:
+        
         turners = np.cos(self.x_axis * np.pi / 180)
         coeffLiftMatrix = coeffLiftMatrix * turners
         

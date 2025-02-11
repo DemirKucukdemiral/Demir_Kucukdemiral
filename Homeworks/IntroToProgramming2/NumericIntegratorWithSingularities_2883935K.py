@@ -142,6 +142,7 @@ def f3(x):
 
 functions = [f1, f2, f3]
 
+
 #evaluating all in one loop 
 
 for i in functions:
