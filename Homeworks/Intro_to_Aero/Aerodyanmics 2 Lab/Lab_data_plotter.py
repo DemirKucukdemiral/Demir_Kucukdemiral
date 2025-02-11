@@ -12,12 +12,16 @@ class pressureAnalysis():
 
         self.x_axis = np.linspace(-6, 20, 14)
         
-        # Extract pressure data and convert to numeric
         self.pressure_data = data.iloc[4:, 12:32].reset_index(drop=True)
-        # Convert all columns to numeric; non-convertible values become NaN
+
         self.pressure_data = self.pressure_data.apply(pd.to_numeric, errors='coerce')
         
         self.pressure_data.to_csv("pressure_data.csv", index=False)
+
+        self.pressure_data.iloc[:, 7] = (self.pressure_data.iloc[: , 9] + self.pressure_data.iloc[:, 5])/2
+        self.pressure_data.iloc[:, 8] = (self.pressure_data.iloc[: , 10] + self.pressure_data.iloc[:, 6])/2
+        self.pressure_data.iloc[:, 16] = (self.pressure_data.iloc[: , 14] + self.pressure_data.iloc[:, 18])/2
+
         self.chord = 150  # mm
         
         self.upper_surface_pressures = self.pressure_data.iloc[:, 1::2]
@@ -33,6 +37,7 @@ class pressureAnalysis():
         self.Cp_lower = self.coefficientPressure(self.lower_surface_pressures_matrix) *1000
         
         self.CL = self.trapezoidal_rule(self.Cp_upper, self.upperDistances, self.Cp_lower, self.lowerDistances)
+        
         print(len(self.Cp_upper[0]))
         plt.plot(self.upperDistances/self.chord, self.Cp_upper[3], label="Upper Surface")
         plt.plot(self.lowerDistances/self.chord, self.Cp_lower[3], label="Lower Surface")
@@ -72,13 +77,9 @@ class pressureAnalysis():
         dx_2[0] /= 2
         dx_2[-1] /= 2
         intMatrix_2 = matrix_2 @ dx_2
-
-        
         
         coeffLiftMatrix = intMatrix_2 - intMatrix_1
 
-        
-        
         # Apply cosine correction in a vectorized way:
         turners = np.cos(self.x_axis * np.pi / 180)
         coeffLiftMatrix = coeffLiftMatrix * turners
