@@ -32,6 +32,7 @@ data.columns = headers
 data = data.dropna()
 
 Throttle = data['THROTTLE'].to_numpy()
+print(len(Throttle))
 Thrust = data['THRUST'].to_numpy()
 
 Fuel_mass_flow = data['FUEL_MASS_FLOW'].to_numpy()*0.001
@@ -40,35 +41,46 @@ specific_fuel_consumption = Fuel_mass_flow / Thrust
 
 throttle_smooth, thrust_smooth = best_fit_curve(Throttle, Thrust, 1)
 
-plt.scatter(Throttle, Thrust, color='gray', s=1)
-plt.plot(throttle_smooth, thrust_smooth, color='red', label='Best-fit curve')
-plt.xlabel(r'Throttle [$\%$]')
-plt.ylabel(r'Thrust [N]')
-plt.grid()
-plt.show()
-
 _, fuel_mass_flow_smooth = best_fit_curve(Throttle, Fuel_mass_flow, 2)
-
-
-plt.scatter(Throttle, Fuel_mass_flow, color='gray', s=1)
-plt.plot(throttle_smooth, fuel_mass_flow_smooth, color='red', label='Best-fit curve')
-plt.xlabel(r'Throttle [$\%$]')
-plt.ylabel(r'Fuel mass flow [$\mathrm{kgs^{-1}}$]')
-plt.grid()
-plt.show()
-
 _, sfc_smooth = best_fit_curve(Throttle, specific_fuel_consumption, 2)
+_, thrust_smooth = best_fit_curve(Throttle, Thrust, 2)
 
-plt.scatter(Throttle, specific_fuel_consumption, color='gray', s=1)
-plt.plot(throttle_smooth, sfc_smooth, color='red', label='Best-fit curve')
-plt.xlabel(r'Throttle [$\%$]')
-plt.ylabel(r'Specific fuel consumption [$\mathrm{kgN^{-1}s^{-1}}$]')
-plt.grid()
-plt.show()
-
-min_fuel_consumption = np.min(specific_fuel_consumption)
+min_fuel_consumption = np.min(sfc_smooth)
 print(f'minimtm specific fuel consumption: {min_fuel_consumption}')
 
-min_fuel_consumption_index = np.argmin(specific_fuel_consumption)
-min_fuel_consumption_throttle = Throttle[min_fuel_consumption_index]
+min_fuel_consumption_index = np.argmin(sfc_smooth)
+min_fuel_consumption_throttle = throttle_smooth[min_fuel_consumption_index]
 print(f'Throttle at minimum specific fuel consumption: {min_fuel_consumption_throttle}')
+min_Thrust = thrust_smooth[min_fuel_consumption_index]
+print(f'Thrust at minimum specific fuel consumption: {min_Thrust} N' )
+
+fig, axes = plt.subplots(1, 3, figsize=(16, 4))  
+
+
+axes[0].scatter(Throttle, Thrust, color='gray', s=10, label="Data")
+axes[0].plot(throttle_smooth, thrust_smooth, color='red', label='Best-fit curve')
+axes[0].set_xlabel(r'Throttle [$\%$]')
+axes[0].set_ylabel(r'Thrust [N]')
+axes[0].set_title('Throttle vs Thrust, (a)')
+axes[0].grid()
+axes[0].legend()
+
+axes[1].scatter(Throttle, Fuel_mass_flow, color='gray', s=10, label="Data")
+axes[1].plot(throttle_smooth, fuel_mass_flow_smooth, color='red', label='Best-fit curve')
+axes[1].set_xlabel(r'Throttle [$\%$]')
+axes[1].set_ylabel(r'Fuel mass flow [$\mathrm{kg/s}$]')
+axes[1].set_title('Throttle vs Fuel Mass Flow, (b)')
+axes[1].grid()
+axes[1].legend()
+
+axes[2].scatter(Throttle, specific_fuel_consumption, color='gray', s=10, label="Data")
+axes[2].plot(throttle_smooth, sfc_smooth, color='red', label='Best-fit curve')
+axes[2].set_xlabel(r'Throttle [$\%$]')
+axes[2].set_ylabel(r'Specific fuel consumption [$\mathrm{kg/Ns}$]')
+axes[2].set_title('Throttle vs Specific Fuel Consumption, (c)')
+axes[2].grid()
+axes[2].legend()
+
+plt.tight_layout()
+plt.show()
+
