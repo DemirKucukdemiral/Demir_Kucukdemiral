@@ -18,15 +18,8 @@ velocity = 20;
 
 
 Yaw0Data = readtable('ATP_yaw0_pitchsweep_clean_elev_down.csv');
-Yaw5Data = readtable('ATP_yaw5_pitchsweep_clean_elev_down.csv');
-Yaw10Data = readtable('ATP_yaw10_pitchsweep_clean_elev_down.csv');
-Yaw15Data = readtable('ATP_yaw15_pitchsweep_clean_elev_down.csv');
-
 
 dataPlotterBlock(Yaw0Data, 0);
-dataPlotterBlock(Yaw5Data, 5);
-dataPlotterBlock(Yaw10Data, 10);
-dataPlotterBlock(Yaw15Data, 15);
 
 
 function [] = dataPlotterBlock(data, yaw)
@@ -61,6 +54,7 @@ function [] = dataPlotterBlock(data, yaw)
 
     R_big = blkdiag(R_cells{:});
 
+
     ForceAll = ForceArray(:);      
     AeroForcesAll = R_big * ForceAll;  
 
@@ -68,34 +62,35 @@ function [] = dataPlotterBlock(data, yaw)
 
     CoefficientOfForces = AeroForcesArray / q;  
 
+    YAW_ANGLE = rad2deg(yaw);
 
     figure;
     
     subplot(1, 3, 1)
     plot(pitchArray, CoefficientOfForces(1, :), 'o-');
     axis square
-    set(gca, 'FontSize', 16);
+    fontsize(18, "points")
     xlabel('Pitch Angle, ($\theta$) [deg]', 'Interpreter','latex');
     ylabel('Coefficient of Drag ($C_D$)', 'Interpreter','latex');
-    title(sprintf('(a) Drag Coefficient Against Pitch Angle at Yaw = %.1f$^{\\circ}$', yaw), 'Interpreter', 'latex', 'FontWeight', 'bold', 'VerticalAlignment', 'bottom');
+    title('(a) Drag Coefficient against Pitch Angle at Yaw Angle = ' YAW_ANGLE '$'], 'Interpreter','latex');
     grid on;
 
     subplot(1, 3, 2)
     plot(pitchArray, CoefficientOfForces(2, :), 'o-');
     axis square
-    set(gca, 'FontSize', 16);
+    fontsize(18, "points")
     xlabel('Pitch Angle, ($\theta$) [deg]', 'Interpreter','latex');
     ylabel('Coefficient of Side Force ($C_L$)', 'Interpreter','latex');
-    title(sprintf('(b) Side Force Coefficient Against Pitch Angle at Yaw = %.1f$^{\\circ}$', yaw), 'Interpreter', 'latex', 'FontWeight', 'bold', 'VerticalAlignment', 'bottom');
+    title('(b)', 'Interpreter','latex');
     grid on;
 
     subplot(1, 3, 3)
     plot(pitchArray, CoefficientOfForces(3, :), 'o-');
     axis square
-    set(gca, 'FontSize', 16);
+    fontsize(18, "points")
     xlabel('Pitch Angle, ($\theta$) [deg]', 'Interpreter','latex');
     ylabel('Coefficient of Lift ($C_L$)', 'Interpreter','latex');
-    title(sprintf('(c) Lift Coefficient Against Pitch Angle at Yaw = %.1f$^{\\circ}$', yaw), 'Interpreter', 'latex', 'FontWeight', 'bold', 'VerticalAlignment', 'bottom');
+    title('(c)', 'Interpreter','latex');
     grid on;
 end
 
