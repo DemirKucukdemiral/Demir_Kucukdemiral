@@ -63,14 +63,11 @@ class Bike():
     def next_step(self, Vx, X, X_ref):
         A, B = self.dynamics(Vx)
         K = self.compute_lqr_gain(A, B)
-        u_raw = -K @ (X - X_ref)  # Or however you form your LQR control
+        u_raw = -K @ (X - X_ref) 
         
-        # 1) Saturate the steering angle
-        steering_angle_max = 30.0 * np.pi/180.0  # ±30 deg
+        steering_angle_max = 30.0 * np.pi/180.0 
         u_clamped = np.clip(u_raw, -steering_angle_max, steering_angle_max)
         
-        # 2) Now apply the clamped steering input in the continuous-time dynamics
-        # (If B has dimension 3x1, then the input is just that single steering angle.)
         X_dot = A @ X + B @ u_clamped
         X_new = X + self.t * X_dot
         if self.process_noise_std > 0.0:
