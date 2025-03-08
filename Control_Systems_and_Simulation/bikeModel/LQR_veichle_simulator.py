@@ -123,12 +123,10 @@ def main():
     goal_color = (255, 50, 50)
     waypoint_color = (255, 215, 0)
 
-    # APF + LQR Switch
     APF_MODE = 0
     LQR_MODE = 1
     mode = APF_MODE
 
-    # APF Setup
     obstacles = [(400, 350), (600, 350), (500, 300), (200, 250)]
     start_pos = (100, 180)
     goal_pos = (700, 380)
@@ -165,7 +163,7 @@ def main():
 
         screen.fill(bg_color)
 
-        # Obstacles (stay on screen)
+
         for obs in obstacles:
             pygame.draw.circle(screen, obs_color, (int(obs[0]), int(obs[1])), 30)
 
@@ -213,7 +211,7 @@ def main():
                 pygame.draw.circle(screen, waypoint_color,
                                    (int(wpt[0]), int(wpt[1])), 5)
 
-            # Move the LQR car
+
             if waypoint_index < len(waypoints):
                 wx, wy = waypoints[waypoint_index]
                 dx, dy = wx - car_x, wy - car_y
@@ -234,18 +232,17 @@ def main():
                     car_y += car_y_dot*dt
                     lqr_path.append((car_x, car_y))
             else:
-                # All waypoints done
                 pass
 
-            # Draw LQR car path (cyan)
+       
             if len(lqr_path) > 1:
                 pygame.draw.lines(
                     screen, (0, 255, 255), False,
                     [(int(px), int(py)) for (px, py) in lqr_path], 2
                 )
-            # Car
+     
             pygame.draw.circle(screen, robot_color, (int(car_x), int(car_y)), 7)
-            # Goal
+    
             pygame.draw.rect(screen, goal_color,
                              (int(goal_pos[0]) - 10, int(goal_pos[1]) - 10, 20, 20))
 
