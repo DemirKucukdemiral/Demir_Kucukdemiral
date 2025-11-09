@@ -20,7 +20,7 @@ class MPC:
         self.ymin = [0]  
 
         # MPC parameters
-        self.h = 0.05 
+        self.h = 0.1
         self.Nh = 30   
         self.nx = 6    
         self.nu = 2    

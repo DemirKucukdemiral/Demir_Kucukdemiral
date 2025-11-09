@@ -6,6 +6,10 @@ import matplotlib.animation as animation
 import math
 import osqp
 
+"""
+TS Ffinally WORKS Yipee
+
+"""
 
 class MPC:
     def __init__(self, solver: str):
@@ -27,7 +31,7 @@ class MPC:
 
 
         # MPC parameters
-        self.h = 0.05 
+        self.h = 0.05
         self.Nh = 50   
         self.nx = 6    
         self.nu = 3   
@@ -39,7 +43,7 @@ class MPC:
         self.e0 = self.opti.parameter(self.nx)  # initial state
 
         #refs 
-        self.xref = np.array([100, 100, -np.pi/2, 10, 0, 0])  
+        self.xref = np.array([50, 50, -np.pi/2, 0, 0, 0])  
         self.u_hover = np.array([0, 0, 0])  
 
         #cost function weifgt matrices
@@ -48,7 +52,7 @@ class MPC:
         self.Qf = np.diag([1000, 1000, 1000, 100, 100, 100])
 
         # sim paramas
-        self.Tfinal = 20.0
+        self.Tfinal = 5.0
         self.Nt = int(self.Tfinal / self.h)  
         self.t_hist = np.linspace(0, self.Tfinal, self.Nt)  
         self.xhist = np.zeros((self.nx, self.Nt))  
@@ -68,8 +72,8 @@ class MPC:
 
         torque = u[0]*ca.sin(u[1]) + u[2]
 
-        x_ddot = u[0]/self.m * ca.cos(x[3]+u[1])
-        y_ddot = u[0]/self.m * ca.sin(x[3]+u[1]) 
+        x_ddot = u[0]/self.m * ca.cos(x[2]+u[1])
+        y_ddot = u[0]/self.m * ca.sin(x[2]+u[1]) 
         theta_ddot = (self.ell/(2*self.J)) * torque
 
         return ca.vertcat(x_dot, y_dot, theta_dot, x_ddot, y_ddot, theta_ddot)
@@ -104,7 +108,11 @@ class MPC:
             sol = self.opti.solve()
             return np.array(sol.value(self.U[:, 0]))  
 
+        progress_interval = max(1, self.Nt // 100)
+
         for k in range(self.Nt-1):
+            if k % progress_interval == 0:
+                print("Progress: {:.1f}%".format(100.0 * k / (self.Nt - 1)))
             u = mpc_control(self.xhist[:, k])
             self.uhist[:, k] = u  
             self.xhist[:, k+1] = np.array(self.rk4_step(self.xhist[:, k], u, self.h)).flatten()
@@ -123,52 +131,56 @@ class MPC:
         plt.show()
 
     def animate(self):
-        """ Animate the rocket trajectory with a box+triangle for the rocket and a star for the target """
         fig, ax = plt.subplots(figsize=(8, 8))
         ax.set_aspect('equal')
-        # Set axis limits to see the region of interest
-        ax.set_xlim(-20, 120)
-        ax.set_ylim(-20, 120)
+        ax.set_xlim(-20, 330)
+        ax.set_ylim(-20, 200)
         
-        # Draw the target as a star (using a marker)
-        target = self.xref  # target position (x, y)
-        target_plot, = ax.plot(target[0], target[1], marker="*", markersize=15, color="gold", label="Target")
-
-        # Create patches for the rocket body (a rectangle) and nose (a triangle)
-        # Define rocket dimensions (these values can be adjusted)
-        body_width = 5
-        body_height = 15
-        # The rectangle is centered at (0,0); we'll transform it later.
+        target = self.xref[:2]
+        target_plot, = ax.plot(target[0], target[1], marker="*", markersize=15, 
+                            color="gold", label="Target")
+    
+        start_y = self.xhist[1, 0]
+        ref_y = target[1]
+        ax.axhline(y=start_y, linestyle='--', color='gray', label='Start Y')
+        ax.axhline(y=ref_y, linestyle='--', color='gray', label='Reference Y')
+        
+        body_width = 3
+        body_height = 10
         rocket_body = patches.Rectangle((-body_width/2, -body_height/2), body_width, body_height,
                                         fc="skyblue", ec="blue")
         ax.add_patch(rocket_body)
-
-        # Define a triangle for the nose (pointing upward in its local frame)
+        
         nose_height = 5
-        # Triangle vertices (local coordinates): bottom left, bottom right, tip.
         nose_coords = np.array([[-body_width/2, body_height/2],
                                 [ body_width/2, body_height/2],
                                 [0, body_height/2 + nose_height]])
         rocket_nose = patches.Polygon(nose_coords, closed=True, fc="red", ec="darkred")
         ax.add_patch(rocket_nose)
-
-        # Function to update the rocket drawing
+        
+        trajectory_line, = ax.plot([], [], color='red', label='Trajectory')
+        
+        
         def update(frame):
-            # Get current state from history
             state = self.xhist[:, frame]
             x_pos, y_pos, theta = state[0], state[1], state[2]
             
-            # Create a transformation: rotate by theta (in degrees) and translate to (x_pos, y_pos)
             t = plt.matplotlib.transforms.Affine2D().rotate_deg_around(0, 0, np.degrees(theta))
             t = t.translate(x_pos, y_pos)
-            
-            # Update rocket body and nose transformations
             rocket_body.set_transform(t + ax.transData)
             rocket_nose.set_transform(t + ax.transData)
             
-            return rocket_body, rocket_nose, target_plot
-
-        ani = animation.FuncAnimation(fig, update, frames=self.Nt, interval=50, blit=True, repeat=True, repeat_delay=2000)
+            if frame < self.uhist.shape[1]:
+                u = self.uhist[:, frame]
+            else:
+                u = self.uhist[:, -1]
+            current_thrust_angle = theta + u[1]
+            trajectory_line.set_data(self.xhist[0, :frame+1], self.xhist[1, :frame+1])
+            
+            return rocket_body, rocket_nose, target_plot, trajectory_line
+        
+        ani = animation.FuncAnimation(fig, update, frames=self.Nt, interval=50, blit=True, 
+                                    repeat=True, repeat_delay=2000)
         plt.xlabel("x")
         plt.ylabel("y")
         plt.title("Rocket Trajectory Animation")
