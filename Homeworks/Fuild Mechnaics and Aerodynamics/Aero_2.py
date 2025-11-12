@@ -45,7 +45,7 @@ def flow_around_cylinder(U_inf, Gamma, a=1.0, grid_size=400):
     Z = X + 1j*Y
 
     # complex potential function
-    F = U_inf * (Z + a**2 / Z) - 1j * Gamma / (2*np.pi) * np.log(Z)
+    F = U_inf * (Z + a**2 / Z) + 1j * Gamma / (2*np.pi) * np.log(Z)
     psi = np.imag(F) # stream function 
 
     psi[np.abs(Z) < a] = np.nan # getting rid of inner points of the cylinder
@@ -103,7 +103,7 @@ def joukowski_airfoil_streamlines(U=1.0, alpha=0.0, beta=0.0, plot=True):
     z_rel = R * np.exp(1j*TH)
     z_abs = z_rel + zc
 
-    psi = U * (R - a**2 / R) * np.sin(TH - alpha) - (Gamma / (2*np.pi)) * np.log(R) #stream function eq using polar coords
+    psi = U * (R - a**2 / R) * np.sin(TH - alpha) + (Gamma / (2*np.pi)) * np.log(R) #stream function eq using polar coords
 
     # need to ensure that points inside the aerofoil are removed
     if branch == 'outside':
@@ -136,7 +136,7 @@ def joukowski_airfoil_streamlines(U=1.0, alpha=0.0, beta=0.0, plot=True):
     chord_length = xb.max() - xb.min()            
     Theory_lift = np.pi * rho * U**2 * chord_length * np.sin(alpha + beta)
     
-    psi_body = -(Gamma/(2*np.pi))*np.log(a)   
+    psi_body = (Gamma/(2*np.pi))*np.log(a)   
     psi = psi - psi_body
 
     if plot:
